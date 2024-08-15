@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Activity Report</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        h1, h2 {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>User Activity Report</h1>
+
+        <section id="dataSummary">
+            <h2>Sample Data Used</h2>
+            <table id="dataTable">
+                <thead>
+                    <tr>
+                        <th>Device ID</th>
+                        <th>User ID</th>
+                        <th>Logged In</th>
+                        <th>Logged Out</th>
+                        <th>Last Opened At</th>
+                    </tr>
+                </thead>
+                <tbody id="dataContent"></tbody>
+            </table>
+        </section>
+
+        <section id="activityReport">
+            <h2>Monthly Activity Report</h2>
+            <table id="reportTable">
+                <thead>
+                    <tr>
+                        <th>Month-Year</th>
+                        <th>Logged-in Users</th>
+                        <th>Active Users</th>
+                    </tr>
+                </thead>
+                <tbody id="reportContent"></tbody>
+            </table>
+        </section>
+    </div>
+    <script>
+        function formatMonthYear(date) {
+            const year = date.getFullYear();
+            const month = date.getMonth() + 1; // Months are 0-indexed, so add 1.
+            return `${year}-${month.toString().padStart(2, '0')}`; // Ensure two digits for month.
+        }
+
+        function trackUserActivity(year, sessions) {
+            const loggedInUserCounts = {};
+            const activeUserCounts = {};
+
+            sessions.forEach(session => {
+                const userId = session.userId;
+                const loginDate = new Date(session.logged_in);
+                const logoutDate = new Date(session.logged_out);
+                const lastOpenedDate = new Date(session.lastOpenedAt);
+
+                let currentDate = new Date(loginDate);
+                while (currentDate <= logoutDate) {
+                    const monthYear = formatMonthYear(currentDate);
+                    if (!loggedInUserCounts[monthYear]) {
+                        loggedInUserCounts[monthYear] = new Set(); // Initialize a new Set if it doesn't exist.
+                    }
+                    loggedInUserCounts[monthYear].add(userId);
+                    currentDate.setMonth(currentDate.getMonth() + 1); // Move to the next month.
+                    currentDate.setDate(1); // Reset to the first day of the next month.
+                }
+
+                const lastOpenedMonthYear = formatMonthYear(lastOpenedDate);
+                if (!activeUserCounts[lastOpenedMonthYear]) {
+                    activeUserCounts[lastOpenedMonthYear] = new Set(); // Initialize a new Set if it doesn't exist.
+                }
+                activeUserCounts[lastOpenedMonthYear].add(userId);
+            });
+
+            const monthlyActivityReport = {};
+            for (let month = 0; month < 12; month++) {
+                const firstDayOfMonth = new Date(year, month, 1);
+                const monthYear = formatMonthYear(firstDayOfMonth);
+                monthlyActivityReport[monthYear] = {
+                    loggedInUsers: (loggedInUserCounts[monthYear] || new Set()).size,
+                    activeUsers: (activeUserCounts[monthYear] || new Set()).size
+                };
+            }
+
+            return monthlyActivityReport;
+        }
+
+
+        const year = 2024;
+        const sessions = [
+            {
+                deviceId: "D1",
+                userId: "U1",
+                logged_in: "2024-01-10T07:00:00.000Z",
+                logged_out: "2024-03-05T17:00:00.000Z",
+                lastOpenedAt: "2024-02-04T18:00:00.000Z"
+            },
+            {
+                deviceId: "D2",
+                userId: "U1",
+                logged_in: "2024-01-15T08:00:00.000Z",
+                logged_out: "2024-02-05T17:00:00.000Z",
+                lastOpenedAt: "2024-02-04T16:00:00.000Z"
+            },
+            {
+                deviceId: "D3",
+                userId: "U1",
+                logged_in: "2024-02-20T09:00:00.000Z",
+                logged_out: "2024-03-20T18:00:00.000Z",
+                lastOpenedAt: "2024-03-10T15:00:00.000Z"
+            },
+            {
+                deviceId: "D4",
+                userId: "U2",
+                logged_in: "2024-02-01T10:00:00.000Z",
+                logged_out: "2024-05-01T14:00:00.000Z",
+                lastOpenedAt: "2024-04-01T10:00:00.000Z"
+            },
+            {
+                deviceId: "D5",
+                userId: "U2",
+                logged_in: "2024-03-15T11:00:00.000Z",
+                logged_out: "2024-04-15T16:00:00.000Z",
+                lastOpenedAt: "2024-03-20T14:00:00.000Z"
+            },
+            {
+                deviceId: "D6",
+                userId: "U3",
+                logged_in: "2024-07-01T08:00:00.000Z",
+                logged_out: "2024-07-31T20:00:00.000Z",
+                lastOpenedAt: "2024-07-15T12:00:00.000Z"
+            },
+            {
+                deviceId: "D7",
+                userId: "U3",
+                logged_in: "2024-08-01T09:00:00.000Z",
+                logged_out: "2024-08-31T22:00:00.000Z",
+                lastOpenedAt: "2024-08-15T11:00:00.000Z"
+            },
+            {
+                deviceId: "D8",
+                userId: "U4",
+                logged_in: "2024-10-10T10:00:00.000Z",
+                logged_out: "2024-12-05T18:00:00.000Z",
+                lastOpenedAt: "2024-11-01T13:00:00.000Z"
+            },
+            {
+                deviceId: "D9",
+                userId: "U5",
+                logged_in: "2024-11-01T07:00:00.000Z",
+                logged_out: "2024-11-30T21:00:00.000Z",
+                lastOpenedAt: "2024-11-15T12:00:00.000Z"
+            }
+        ];
+
+        const activityReport = trackUserActivity(year, sessions);
+
+        // Display sample data in HTML table
+        const dataContentElement = document.getElementById('dataContent');
+        dataContentElement.innerHTML = sessions.map(session => {
+            return `<tr>
+                <td>${session.deviceId}</td>
+                <td>${session.userId}</td>
+                <td>${session.logged_in}</td>
+                <td>${session.logged_out}</td>
+                <td>${session.lastOpenedAt}</td>
+            </tr>`;
+        }).join('');
+
+        // Display monthly activity report in HTML table
+        const reportContentElement = document.getElementById('reportContent');
+        reportContentElement.innerHTML = Object.keys(activityReport).map(monthYear => {
+            return `<tr>
+                <td>${monthYear}</td>
+                <td>${activityReport[monthYear].loggedInUsers}</td>
+                <td>${activityReport[monthYear].activeUsers}</td>
+            </tr>`;
+        }).join('');
+    </script>
+</body>
+</html>
